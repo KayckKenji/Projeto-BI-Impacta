@@ -22,6 +22,7 @@ O script gera um conjunto de dados fictícios contendo informações sobre venda
 * Data da venda
 * Quantidade
 * Faturamento
+
 Os dados são gerados aleatoriamente dentro de um intervalo lógico para simular um cenário real de vendas.
 
 **Aqui está o código utilizado para gerar a base de dados:**
