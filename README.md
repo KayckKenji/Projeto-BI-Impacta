@@ -2,7 +2,7 @@
 
 Projeto de análise de dados
 
-Este repositório contém um script em Python que gera uma base de dados fictícia para análise de vendas de suplementos. A base foi criada utilizando a biblioteca “Pandas” para simular um conjunto de dados realista.
+Este repositório contém um script em Python que gera uma base de dados fictícia em .xlsx para análise de vendas de suplementos. A base foi criada utilizando a biblioteca “Pandas” para simular um conjunto de dados realista.
 
 **Tecnologias Utilizadas**
 
@@ -14,14 +14,17 @@ Este repositório contém um script em Python que gera uma base de dados fictíc
 **Como o Script Funciona**
 
 O script gera um conjunto de dados fictícios contendo informações sobre vendas de suplementos. Os principais campos da base de dados incluem:
-* Produto (exemplo: Whey Protein, Creatina, Pré-treino)
+* Produto 
 * Marca
-* Preço
 * Custo
-* Região
-* Data da venda
-* Quantidade
+* Margem de Lucro
+* Preço Final
+* Quantidade Vendida
 * Faturamento
+* Data da Venda
+* País
+* Região
+* UF 
 
 Os dados são gerados aleatoriamente dentro de um intervalo lógico para simular um cenário real de vendas.
 
@@ -31,62 +34,88 @@ Os dados são gerados aleatoriamente dentro de um intervalo lógico para simular
 ```python
 import pandas as pd
 import numpy as np
-from random import choice, uniform, randint
+from random import choice, randint, uniform
 ```
-# Definição das categorias
+# Listas fixas
 ```python
 marcas = ["Growth", "Max Titanium", "Dark Lab", "Integral Médica", "Probiótica"]
-produtos = ["Creatina", "Pré-Treino", "Whey", "Hiper Calórico", "BCAA"]
-regioes = ["Sul", "Sudeste", "Centro-Oeste", "Nordeste", "Norte"]
-```
-
-# Tabela de custo fixo por marca e produto
-```python
-custos = {
-    "Growth": {"Creatina": 50, "Pré-Treino": 70, "Whey": 90, "Hiper Calórico": 110, "BCAA": 60},
-    "Max Titanium": {"Creatina": 55, "Pré-Treino": 75, "Whey": 95, "Hiper Calórico": 115, "BCAA": 65},
-    "Dark Lab": {"Creatina": 60, "Pré-Treino": 85, "Whey": 100, "Hiper Calórico": 120, "BCAA": 70},
-    "Integral Médica": {"Creatina": 52, "Pré-Treino": 72, "Whey": 92, "Hiper Calórico": 112, "BCAA": 62},
-    "Probiótica": {"Creatina": 53, "Pré-Treino": 73, "Whey": 93, "Hiper Calórico": 113, "BCAA": 63}
+produtos = ["Creatina", "Pré-treino", "Whey", "Hiper Calórico", "BCAA"]
+regioes_ufs = {
+    "Sul": ["RS", "SC", "PR"],
+    "Sudeste": ["SP", "RJ", "MG", "ES"],
+    "Centro-Oeste": ["GO", "MT", "MS", "DF"],
+    "Nordeste": ["BA", "PE", "CE", "RN", "PB", "MA", "AL", "SE", "PI"],
+    "Norte": ["AM", "PA", "RO", "RR", "TO", "AC", "AP"]
 }
 ```
 
-# Função para gerar preço baseado na região
+# Custo fixo por marca e produto
 ```python
-def gerar_preco(marca, produto, regiao):
-    base_price = custos[marca][produto] * uniform(1.2, 1.5)  # Margem de lucro de 20% a 50%
-    ajuste_regiao = {"Sul": 0.95, "Sudeste": 1.0, "Centro-Oeste": 1.05, "Nordeste": 1.1, "Norte": 1.15}
-    return round(base_price * ajuste_regiao[regiao], 2)
+custos = {
+    "Growth": {"Creatina": 50, "Pré-treino": 70, "Whey": 90, "Hiper Calórico": 110, "BCAA": 60},
+    "Max Titanium": {"Creatina": 55, "Pré-treino": 75, "Whey": 95, "Hiper Calórico": 115, "BCAA": 65},
+    "Dark Lab": {"Creatina": 60, "Pré-treino": 85, "Whey": 100, "Hiper Calórico": 120, "BCAA": 70},
+    "Integral Médica": {"Creatina": 52, "Pré-treino": 72, "Whey": 92, "Hiper Calórico": 112, "BCAA": 62},
+    "Probiótica": {"Creatina": 53, "Pré-treino": 73, "Whey": 93, "Hiper Calórico": 113, "BCAA": 63}
+}
 ```
-# Gerando os dados
+
+# Ajustes por região
 ```python
-np.random.seed(42)  # Para reprodutibilidade
+ajuste_regiao = {
+    "Sul": 1.02,
+    "Sudeste": 1.3,
+    "Centro-Oeste": 1.05,
+    "Nordeste": 1.1,
+    "Norte": 1.15
+}
+```
+# Gerador de dados
+```python
+np.random.seed(42)  # Reprodutibilidade
 dados = []
-for _ in range(50_000):
+
+for _ in range(50000):
     marca = choice(marcas)
     produto = choice(produtos)
-    regiao = choice(regioes)
-    preco = gerar_preco(marca, produto, regiao)
     custo = custos[marca][produto]
-    data_venda = pd.to_datetime("2024-01-01") + pd.to_timedelta(randint(0, 60), unit="D")  # Vendas entre janeiro e março
+    regiao = choice(list(regioes_ufs.keys()))
+    uf = choice(regioes_ufs[regiao])
+    margem_lucro = uniform(1.2, 1.5)
+    preco_base = custo * margem_lucro * ajuste_regiao[regiao]
+    preco_final = round(preco_base, 2)
     quantidade = randint(1, 10)
-    
-    dados.append([produto, marca, preco, custo, regiao, data_venda, quantidade])
-```
-# Criando DataFrame
-```python
-df = pd.DataFrame(dados, columns=["Produto", "Marca", "Preço", "Custo", "Região", "Data da Venda", "Quantidade Vendida"])
-df.head() # Exibir primeiras linhas
-df = pd.DataFrame(dados)
-```
-# Salvar em um arquivo CSV
-```python
-csv_filename = "suplementos_powerbi.csv"
-df.to_csv(csv_filename, index=False)
+    faturamento = round(preco_final * quantidade, 2)
+    data_venda = pd.to_datetime("2024-01-01") + pd.to_timedelta(randint(0, 60), unit="D")
 
-print(f"Arquivo gerado: {csv_filename}")
+    dados.append([
+        produto,
+        marca,
+        custo,
+        round(margem_lucro, 2),
+        preco_final,
+        quantidade,
+        faturamento,
+        data_venda.date(),
+        "Brasil",
+        regiao,
+        uf
+    ])
 ```
-Dessa forma, o arquivo .csv com a base de dados é gerada na pasta do projeto
+# Criar DataFrame
+```python
+colunas = [
+    "Produto", "Marca", "Custo", "Margem de Lucro", "Preço Final",
+    "Quantidade Vendida", "Faturamento", "Data da Venda", "País", "Região", "UF"
+]
 
-* Obs: 
-Notamos que quando importamos os dados para o Power BI sao gerados alguns valores de “preco” menores que os valores de “custo”. Estamos providenciando o ajuste para este ponto. 
+df = pd.DataFrame(dados, columns=colunas)
+```
+# Salvar em Excel
+```python
+nome_arquivo = "vendas_suplementos_base.xlsx"
+df.to_excel(nome_arquivo, index=False)
+
+print(f"Base de dados gerada com sucesso: {nome_arquivo}")
+```
+Dessa forma, o arquivo .xlsx com a base de dados é gerada na pasta do projeto
